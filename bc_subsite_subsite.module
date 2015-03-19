@@ -1,0 +1,104 @@
+<?php
+/**
+ * @file
+ * Bellcom subsite subsite client module.
+ */
+
+/**
+ * Implements hook_init().
+ */
+function bc_subsite_subsite_init() {
+  // On the first pageload, fetch the sitedata from the creator site.
+  if (variable_get('bc_subsite_subsite_first_run', TRUE)) {
+    variable_set('bc_subsite_subsite_first_run', FALSE);
+
+    $site_name = variable_get('site_name');
+    $key = md5(variable_get('site_mail'));
+
+    $subsite_creator = 'http://127.0.0.1/subsite';
+    $url = "$subsite_creator/$site_name/$key";
+
+    $site_data_json = file_get_contents($url);
+    $site_data = json_decode($site_data_json);
+
+    // Save the data for later use.
+    variable_set('bc_subsite_subsite_data', $site_data);
+
+    $contact_fields = array(
+      'name' => 'field_kontakt_navn',
+      'address' => 'field_kontakt_adresse',
+      'mail' => 'field_kontakt_e_mail',
+      'phone' => 'field_kontakt_telefon',
+      'zipcode' => 'field_kontakt_postnummer',
+    );
+
+    foreach ($contact_fields as $index => $contact_field) {
+      $field = reset($site_data->$contact_field);
+      $contact_data[$index] = $field[0]->value;
+    }
+
+    variable_set('bc_subsite_subsite_contact_data', $contact_data);
+
+    $social_fields = array(
+      'facebook' => 'field_facebook',
+      'youtube' => 'field_youtube',
+      'twitter' => 'field_twitter',
+    );
+
+    foreach ($social_fields as $index => $social_field) {
+      $field = reset($site_data->$social_field);
+      $social_data[$index] = $field[0]->value;
+    }
+
+    variable_set('bc_subsite_subsite_social_data', $social_data);
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function bc_subsite_subsite_theme() {
+  return array(
+    'bc_subsite_subsite_contact_block' => array(
+      'template' => 'block-bc-subsite-subsite-contact',
+    ),
+    'bc_subsite_subsite_social_block' => array(
+      'template' => 'block-bc-subsite-subsite-social',
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function bc_subsite_subsite_block_info() {
+  $blocks['bc_subsite_subsite_contact'] = array(
+    'info' => t('Subsite kontakt blok'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['bc_subsite_subsite_social'] = array(
+    'info' => t('Subsite social blok'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function bc_subsite_subsite_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'bc_subsite_subsite_contact':
+      $vars = variable_get('bc_subsite_subsite_contact_data', array());
+      $block['content'] = theme('bc_subsite_subsite_contact_block', $vars);
+      break;
+
+    case 'bc_subsite_subsite_social':
+      $vars = variable_get('bc_subsite_subsite_social_data', array());
+      $block['content'] = theme('bc_subsite_subsite_social_block', $vars);
+      break;
+  }
+  return $block;
+}

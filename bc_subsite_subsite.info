@@ -1,0 +1,3 @@
+name = Bellcom Subsite subsite client module
+description = Fetch data from subsite creator site
+core = 7.x

@@ -30,6 +30,8 @@ function bc_subsite_subsite_init() {
       'mail' => 'field_kontakt_e_mail',
       'phone' => 'field_kontakt_telefon',
       'zipcode' => 'field_kontakt_postnummer',
+      'city' => 'field_kontakt_by',
+      'text' => 'field_fritekst',
     );
 
     foreach ($contact_fields as $index => $contact_field) {
